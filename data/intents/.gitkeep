@@ -1,0 +1,7 @@
+# Intent-specific training data will be stored here
+# Files generated:
+# - greeting_examples.json
+# - food_examples.json
+# - study_examples.json
+# - word_frequency.json
+# - bigram_frequency.json

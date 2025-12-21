@@ -1,0 +1,35 @@
+{
+  "total_messages": 59237,
+  "total_conversation_pairs": 55354,
+  "unique_senders": 2,
+  "sender_distribution": {
+    "Aswin P T": 31268,
+    "Raayalesmi (Reborn Edition)❤️‍🔥": 27969
+  },
+  "total_words": 239072,
+  "unique_words": 43071,
+  "top_20_words": {
+    "njn": 5447,
+    "nee": 3146,
+    "illa": 1464,
+    "alle": 1388,
+    "ore": 1357,
+    "anne": 1307,
+    "aa": 1299,
+    "nd": 1289,
+    "ath": 1240,
+    "this": 1167,
+    "was": 1123,
+    "message": 1078,
+    "okka": 986,
+    "entha": 984,
+    "edited": 981,
+    "alla": 873,
+    "onm": 870,
+    "oru": 869,
+    "enniki": 868,
+    "nki": 852
+  },
+  "estimated_manglish_words": 8609,
+  "manglish_percentage": 3.6
+}
