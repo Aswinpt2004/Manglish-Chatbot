@@ -19,13 +19,14 @@ import os
 class ManglishChatbot:
     """Main Manglish Chatbot Engine"""
     
-    def __init__(self, conversation_data_path=None):
+    def __init__(self, conversation_data_path=None, quiet=False):
         """Initialize the chatbot with optional training data"""
         self.conversation_pairs = []
         self.intent_patterns = self._load_intent_patterns()
         self.responses_db = defaultdict(list)
         self.context_history = []
         self.max_context = 3
+        self.quiet = quiet  # Suppress debug prints when True
         
         if conversation_data_path and os.path.exists(conversation_data_path):
             self.load_conversation_data(conversation_data_path)
@@ -173,7 +174,8 @@ class ManglishChatbot:
     
     def load_conversation_data(self, filepath):
         """Load preprocessed conversation pairs"""
-        print(f"📚 Loading conversation data from {filepath}...")
+        if not self.quiet:
+            print(f"Loading conversation data from {filepath}...")
         with open(filepath, 'r', encoding='utf-8') as f:
             self.conversation_pairs = json.load(f)
         
@@ -183,7 +185,8 @@ class ManglishChatbot:
             response = pair['response']
             self.responses_db[context.lower()].append(response)
         
-        print(f"✅ Loaded {len(self.conversation_pairs)} conversation pairs")
+        if not self.quiet:
+            print(f"✅ Loaded {len(self.conversation_pairs)} conversation pairs")
     
     def clean_input(self, text):
         """Clean and normalize user input"""

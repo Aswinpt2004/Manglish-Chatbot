@@ -5,6 +5,9 @@
 # Data manipulation and analysis
 pandas>=1.5.0
 
+# Note: WhatsApp integration now uses Node.js (whatsapp_bot.js)
+# Run: npm install (see WHATSAPP_NODEJS_SETUP.md)
+
 # No additional ML libraries needed for basic version
 # The chatbot uses built-in Python libraries:
 # - re (regex) - built-in

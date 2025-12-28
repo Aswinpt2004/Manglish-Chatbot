@@ -1,0 +1,21 @@
+{
+  "name": "manglish-whatsapp-chatbot",
+  "version": "1.0.0",
+  "description": "WhatsApp integration for Manglish Chatbot",
+  "main": "whatsapp_bot.js",
+  "scripts": {
+    "start": "node whatsapp_bot.js",
+    "test": "node whatsapp_bot.js"
+  },
+  "keywords": [
+    "whatsapp",
+    "chatbot",
+    "manglish"
+  ],
+  "author": "Chatbot_reborn",
+  "license": "MIT",
+  "dependencies": {
+    "whatsapp-web.js": "^1.0.26",
+    "qrcode-terminal": "^0.12.0"
+  }
+}
