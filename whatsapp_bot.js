@@ -11,6 +11,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const { spawn } = require('child_process');
+const ConversationManager = require('./conversationManager');
 
 // ============================================
 // CONFIGURATION
@@ -18,7 +19,8 @@ const { spawn } = require('child_process');
 const ALLOWED_CONTACTS = [
     'Aswin P.T',
     'Aswin P. T',
-    '918891381713',  // Phone number (fallback when contact name unavailable)
+    '918891381713', 
+    '82592254705895' // Phone number (fallback when contact name unavailable)
     // Add more contact names here
 ];
 
@@ -49,10 +51,14 @@ const client = new Client({
 });
 
 // ============================================
-// Chatbot Response Generator
+// Chatbot Response Generator with Context
 // ============================================
-async function getChatbotResponse(message) {
+async function getChatbotResponse(message, userId, context = null) {
     return new Promise((resolve, reject) => {
+        // Prepare context string if available
+        const contextStr = context ? `Previous conversation:\n${context}\n\nNew message: ` : '';
+        const fullPrompt = contextStr + message;
+        
         // Call Python chatbot to generate response
         const python = spawn('python', ['-c', `
 import sys
@@ -71,7 +77,7 @@ user_input = sys.argv[1]
 response, intent = chatbot.generate_response(user_input)
 result = {"response": response, "intent": intent}
 print(json.dumps(result, ensure_ascii=False))
-`, message], {
+`, fullPrompt], {
             env: { ...process.env, PYTHONIOENCODING: 'utf-8' }
         });
 
@@ -168,6 +174,8 @@ client.on('message', async (msg) => {
     try {
         // Get contact info with fallback; suppress noisy library errors
         let contactName = 'Unknown';
+        let phoneNumber = null;
+        
         const safeGetContact = async () => {
             try {
                 const contact = await msg.getContact();
@@ -177,7 +185,12 @@ client.on('message', async (msg) => {
             }
         };
         const contact = await safeGetContact();
-        contactName = (contact && (contact.pushname || contact.name || contact.number)) || msg.from.replace('@c.us', '') || 'Unknown';
+        
+        // Extract phone number from msg.from (handles @c.us, @lid, etc.)
+        phoneNumber = msg.from.split('@')[0];
+        
+        // Get contact name with fallback to phone number
+        contactName = (contact && (contact.pushname || contact.name || contact.number)) || phoneNumber || 'Unknown';
         
         // Skip messages from self
         if (msg.fromMe) {
@@ -189,19 +202,34 @@ client.on('message', async (msg) => {
             return;
         }
         
-        // Check if contact is allowed
-        if (!isContactAllowed(contactName)) {
-            console.log(`🚫 Skipping message from: ${contactName} (not in allowed list)`);
+        // Check if contact is allowed (check both name and phone number)
+        const isAllowed = RESPOND_TO_ALL || 
+                         ALLOWED_CONTACTS.includes(contactName) || 
+                         ALLOWED_CONTACTS.includes(phoneNumber);
+        
+        if (!isAllowed) {
+            console.log(`🚫 Skipping message from: ${contactName} (${phoneNumber}) (not in allowed list)`);
             return;
         }
         
         console.log(`\n💬 Message from: ${contactName}`);
         console.log(`   User: ${msg.body}`);
         
-        // Get chatbot response
+        // Load conversation history and get context
+        const userId = phoneNumber; // Use phone number as unique ID
+        const contextInfo = ConversationManager.getContext(userId, 5);
+        const conversationContext = contextInfo ? contextInfo.summary : null;
+        
+        // Add user message to history
+        ConversationManager.addMessage(userId, 'user', msg.body);
+        
+        // Get chatbot response with context
         try {
-            const result = await getChatbotResponse(msg.body);
+            const result = await getChatbotResponse(msg.body, userId, conversationContext);
             console.log(`   Bot: ${result.response} [Intent: ${result.intent}]`);
+            
+            // Add bot response to history
+            ConversationManager.addMessage(userId, 'assistant', result.response, result.intent);
             
             // Send response
             await msg.reply(result.response);
